@@ -24,11 +24,6 @@ func init() {
 }
 
 func main() {
-	// if its empty 80 is being used
-	portNumber := config.GetApiPort()
-
-	fmt.Println(fmt.Sprintf("Starting app on port %s", portNumber))
-
 	environment := os.Getenv("ENVIRONMENT")
 	if environment != "production" {
 		err := godotenv.Load()
@@ -36,6 +31,10 @@ func main() {
 			log.Fatal("Error loading .env file")
 		}
 	}
+
+	// if its empty 80 is being used
+	portNumber := config.GetApiPort()
+	fmt.Println(fmt.Sprintf("Starting app on port %s", portNumber))
 
 	db := database.NewDbAdapter()
 	playersService := services.NewPlayers(db)
