@@ -15,8 +15,6 @@ import (
 )
 
 func init() {
-	log.SetFormatter(&log.JSONFormatter{})
-
 	log.SetOutput(os.Stdout)
 
 	log.SetLevel(log.DebugLevel)
@@ -43,6 +41,8 @@ func main() {
 		log.Fatalf("cant connect to s3 %v", err)
 	}
 
+	msgNumber := 0
+
 	for {
 		message, err := k.Reader.ReadMessage(context.Background())
 		if err != nil {
@@ -50,10 +50,12 @@ func main() {
 			continue
 		}
 
-		log.Debug("Received the payload")
+		msgNumber++
+
+		log.Debugf("received the %d. message payload", msgNumber)
 
 		if len(message.Value) == 0 {
-			log.Debugf("Received an empty message")
+			log.Debugf("received an empty message")
 			continue
 		}
 
@@ -64,9 +66,14 @@ func main() {
 			continue
 		}
 
+		debugPrint := ""
+		for _, player := range players {
+			debugPrint = fmt.Sprintf("%s, %s", debugPrint, player.Name)
+		}
+
 		log.WithFields(log.Fields{
-			"unmarshalled-payload": players,
-		}).Debug("Unmarshalled the payload")
+			"partialMessage": fmt.Sprintf("%s...", debugPrint[2:100]),
+		}).Debugf("unmarshalled the %d. message payload", msgNumber)
 
 		for _, player := range players {
 			if player.Photo != "" {
@@ -84,7 +91,7 @@ func main() {
 
 			log.WithFields(log.Fields{
 				"insertedItemOutput": itemOutput.String(),
-			}).Debug("Inserted or updated the player to the database")
+			}).Debug("inserted or updated the player to the database")
 		}
 	}
 }
