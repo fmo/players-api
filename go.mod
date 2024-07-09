@@ -1,6 +1,6 @@
 module github.com/fmo/players-api
 
-go 1.19
+go 1.22.5
 
 require (
 	github.com/aws/aws-sdk-go v1.50.36
@@ -14,6 +14,7 @@ require (
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/fmo/football-proto/golang/player v0.0.3 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/klauspost/compress v1.15.9 // indirect
 	github.com/pierrec/lz4/v4 v4.1.15 // indirect
@@ -23,5 +24,6 @@ require (
 	github.com/xdg-go/stringprep v1.0.4 // indirect
 	golang.org/x/sys v0.13.0 // indirect
 	golang.org/x/text v0.13.0 // indirect
+	google.golang.org/protobuf v1.34.2 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

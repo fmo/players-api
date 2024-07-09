@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	pb "github.com/fmo/football-proto/golang/player"
 	"github.com/fmo/players-api/internal/database"
 	"github.com/fmo/players-api/internal/kafka"
 	"github.com/fmo/players-api/internal/models"
@@ -59,7 +60,7 @@ func main() {
 			continue
 		}
 
-		var players []models.Player
+		var players []*pb.Player
 		err = json.Unmarshal(message.Value, &players)
 		if err != nil {
 			log.Errorf("Error unmarshalling message: %v", err)
@@ -77,20 +78,36 @@ func main() {
 
 		for _, player := range players {
 			if player.Photo != "" {
-				playerPhotoName := fmt.Sprintf("%s.png", player.RapidApiID)
+				playerPhotoName := fmt.Sprintf("%s.png", player.RapidApiId)
 				err = s3Service.Save(playerPhotoName, player.Photo)
 				if err != nil {
 					log.Error(err)
 				}
 			}
 
-			itemOutput, err := playersService.CreateOrUpdate(player)
+			p := models.Player{
+				Team:        player.Team,
+				TeamId:      player.TeamId,
+				Name:        player.Name,
+				Firstname:   player.Firstname,
+				Lastname:    player.Lastname,
+				Age:         player.Age,
+				Nationality: player.Nationality,
+				Photo:       player.Photo,
+				RapidApiID:  player.RapidApiId,
+				Appearances: player.Appearances,
+				Position:    player.Position,
+			}
+
+			_, err := playersService.CreateOrUpdate(p)
 			if err != nil {
 				log.Fatalf("Got error calling PutItem: %s", err)
 			}
 
 			log.WithFields(log.Fields{
-				"insertedItemOutput": itemOutput.String(),
+				"playerId":   p.RapidApiID,
+				"playerName": p.Name,
+				"teamName":   p.Team,
 			}).Debug("inserted or updated the player to the database")
 		}
 	}
