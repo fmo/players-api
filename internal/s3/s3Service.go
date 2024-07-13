@@ -14,9 +14,10 @@ import (
 
 type Service struct {
 	Session s3iface.S3API
+	logger  *log.Logger
 }
 
-func NewS3Service() (*Service, error) {
+func NewS3Service(l *log.Logger) (*Service, error) {
 	sess, err := session.NewSession(&aws.Config{
 		Region: aws.String(config.GetAwsRegion())},
 	)
@@ -26,6 +27,7 @@ func NewS3Service() (*Service, error) {
 
 	return &Service{
 		Session: s3.New(sess),
+		logger:  l,
 	}, nil
 }
 
@@ -58,9 +60,9 @@ func (s Service) Save(s3Key, url string) error {
 		return err
 	}
 
-	log.WithFields(log.Fields{
+	s.logger.WithFields(log.Fields{
 		"object": object.String(),
-	}).Debug("Photo uploaded")
+	}).Debug("photo uploaded")
 
 	return nil
 }
@@ -72,10 +74,10 @@ func (s Service) checkImageAlreadyUploaded(s3Bucket, s3Key string) bool {
 	})
 
 	if err == nil {
-		log.WithFields(log.Fields{
+		s.logger.WithFields(log.Fields{
 			"s3Key":    s3Key,
 			"metadata": objectMetadata.Metadata,
-		}).Debugf("Image is already upload for %v", s3Key)
+		}).Debugf("image is already upload for %v", s3Key)
 
 		return true
 	}

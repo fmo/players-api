@@ -45,7 +45,7 @@ func main() {
 		logger,
 	)
 
-	s3Service, err := s3.NewS3Service()
+	s3Service, err := s3.NewS3Service(logger)
 	if err != nil {
 		logger.Fatalf("cant connect to s3 %v", err)
 	}
