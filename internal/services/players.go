@@ -9,17 +9,20 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb/expression"
 	"github.com/fmo/players-api/internal/database"
 	"github.com/fmo/players-api/internal/models"
+	"github.com/sirupsen/logrus"
 )
 
 const tableName = "fmo-players"
 
 type PlayersService struct {
-	DB *database.Database
+	DB     *database.Database
+	Logger *logrus.Logger
 }
 
-func NewPlayers(db *database.Database) PlayersService {
+func NewPlayers(db *database.Database, l *logrus.Logger) PlayersService {
 	return PlayersService{
-		DB: db,
+		DB:     db,
+		Logger: l,
 	}
 }
 

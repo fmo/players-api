@@ -13,12 +13,15 @@ import (
 	"github.com/joho/godotenv"
 	log "github.com/sirupsen/logrus"
 	"os"
+	"time"
 )
 
-func init() {
-	log.SetOutput(os.Stdout)
+var logger = log.New()
 
-	log.SetLevel(log.DebugLevel)
+func init() {
+	logger.Out = os.Stdout
+
+	logger.Level = log.DebugLevel
 }
 
 func main() {
@@ -28,42 +31,47 @@ func main() {
 	if environment != "production" {
 		err := godotenv.Load()
 		if err != nil {
-			log.Fatal("Error loading .env file")
+			logger.Fatal("Error loading .env file")
 		}
 	}
 
 	k := kafka.NewKafka()
-	defer k.Reader.Close()
 
-	playersService := services.NewPlayers(database.NewDbAdapter())
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*600)
+	defer cancel()
+
+	playersService := services.NewPlayers(
+		database.NewDbAdapter(),
+		logger,
+	)
 
 	s3Service, err := s3.NewS3Service()
 	if err != nil {
-		log.Fatalf("cant connect to s3 %v", err)
+		logger.Fatalf("cant connect to s3 %v", err)
 	}
 
 	msgNumber := 0
 
 	for {
-		message, err := k.Reader.ReadMessage(context.Background())
+		message, err := k.Reader.ReadMessage(ctx)
 		if err != nil {
-			log.Errorf("Error reading message: %v\n", err)
+			logger.Errorf("Error reading message: %v\n", err)
 			continue
 		}
 
 		msgNumber++
 
-		log.Debugf("received the %d. message payload", msgNumber)
+		logger.Debugf("received the %d. message payload", msgNumber)
 
 		if len(message.Value) == 0 {
-			log.Debugf("received an empty message")
+			logger.Debugf("received an empty message")
 			continue
 		}
 
 		var players []*pb.Player
 		err = json.Unmarshal(message.Value, &players)
 		if err != nil {
-			log.Errorf("Error unmarshalling message: %v", err)
+			logger.Errorf("Error unmarshalling message: %v", err)
 			continue
 		}
 
@@ -72,8 +80,8 @@ func main() {
 			debugPrint = fmt.Sprintf("%s, %s", debugPrint, player.Name)
 		}
 
-		log.WithFields(log.Fields{
-			"partialMessage": fmt.Sprintf("%s...", debugPrint[2:100]),
+		logger.WithFields(log.Fields{
+			"receivedMessage": fmt.Sprintf("%s...", debugPrint[2:100]),
 		}).Debugf("unmarshalled the %d. message payload", msgNumber)
 
 		for _, player := range players {
@@ -81,7 +89,7 @@ func main() {
 				playerPhotoName := fmt.Sprintf("%s.png", player.RapidApiId)
 				err = s3Service.Save(playerPhotoName, player.Photo)
 				if err != nil {
-					log.Error(err)
+					logger.Error(err)
 				}
 			}
 
@@ -101,14 +109,15 @@ func main() {
 
 			_, err := playersService.CreateOrUpdate(p)
 			if err != nil {
-				log.Fatalf("Got error calling PutItem: %s", err)
+				logger.Fatalf("Got error calling PutItem: %s", err)
 			}
 
-			log.WithFields(log.Fields{
+			logger.WithFields(log.Fields{
 				"playerId":   p.RapidApiID,
 				"playerName": p.Name,
 				"teamName":   p.Team,
 			}).Debug("inserted or updated the player to the database")
 		}
 	}
+	k.Reader.Close()
 }
