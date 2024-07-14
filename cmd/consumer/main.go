@@ -85,14 +85,6 @@ func main() {
 		}).Debugf("unmarshalled the %d. message payload", msgNumber)
 
 		for _, player := range players {
-			if player.Photo != "" {
-				playerPhotoName := fmt.Sprintf("%s.png", player.RapidApiId)
-				err = s3Service.Save(playerPhotoName, player.Photo)
-				if err != nil {
-					logger.Error(err)
-				}
-			}
-
 			p := models.Player{
 				Team:        player.Team,
 				TeamId:      player.TeamId,
@@ -107,16 +99,31 @@ func main() {
 				Position:    player.Position,
 			}
 
+			imageAlreadyUploaded := false
+			imageInfo := ""
+			if player.Photo != "" {
+				imageAlreadyUploaded, err = s3Service.Save(p)
+				if err != nil {
+					logger.Error(err)
+				} else {
+					if imageAlreadyUploaded {
+						imageInfo = "image already before uploaded"
+					} else {
+						imageInfo = "image uploaded"
+					}
+				}
+			}
+
 			_, err := playersService.CreateOrUpdate(p)
 			if err != nil {
 				logger.Fatalf("Got error calling PutItem: %s", err)
 			}
 
 			logger.WithFields(log.Fields{
-				"playerId":   p.RapidApiID,
-				"playerName": p.Name,
-				"teamName":   p.Team,
-			}).Debug("inserted or updated the player to the database")
+				"playerImage": imageInfo,
+				"playerId":    p.RapidApiID,
+				"teamName":    p.Team,
+			}).Infof("inserted or updated %s %s to the database", p.Firstname, p.Lastname)
 		}
 	}
 	k.Reader.Close()

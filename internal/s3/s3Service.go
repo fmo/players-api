@@ -2,11 +2,13 @@ package s3
 
 import (
 	"bytes"
+	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3iface"
 	"github.com/fmo/players-api/config"
+	"github.com/fmo/players-api/internal/models"
 	log "github.com/sirupsen/logrus"
 	"io"
 	"net/http"
@@ -31,54 +33,47 @@ func NewS3Service(l *log.Logger) (*Service, error) {
 	}, nil
 }
 
-func (s Service) Save(s3Key, url string) error {
+func (s Service) Save(player models.Player) (imageAlreadyUploaded bool, err error) {
+	s3Key := fmt.Sprintf("%s.png", player.RapidApiID)
+
 	s3Bucket := config.GetS3Bucket()
 
 	if s.checkImageAlreadyUploaded(s3Bucket, s3Key) == true {
-		return nil
+		return true, nil
 	}
 
 	// Download the file
-	resp, err := http.Get(url)
+	resp, err := http.Get(player.Photo)
 	if err != nil {
-		return err
+		return false, err
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	// Upload the file to S3
-	object, err := s.Session.PutObject(&s3.PutObjectInput{
+	_, err = s.Session.PutObject(&s3.PutObjectInput{
 		Bucket: aws.String(s3Bucket),
 		Key:    aws.String(s3Key),
 		Body:   bytes.NewReader(body),
 	})
 	if err != nil {
-		return err
+		return false, err
 	}
 
-	s.logger.WithFields(log.Fields{
-		"object": object.String(),
-	}).Debug("photo uploaded")
-
-	return nil
+	return false, nil
 }
 
 func (s Service) checkImageAlreadyUploaded(s3Bucket, s3Key string) bool {
-	objectMetadata, err := s.Session.HeadObject(&s3.HeadObjectInput{
+	_, err := s.Session.HeadObject(&s3.HeadObjectInput{
 		Bucket: aws.String(s3Bucket),
 		Key:    aws.String(s3Key),
 	})
 
 	if err == nil {
-		s.logger.WithFields(log.Fields{
-			"s3Key":    s3Key,
-			"metadata": objectMetadata.Metadata,
-		}).Debugf("image is already upload for %v", s3Key)
-
 		return true
 	}
 
