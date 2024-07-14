@@ -15,12 +15,12 @@ type AppConfig struct {
 	PlayersService services.PlayersService
 }
 
+var logger = log.New()
+
 func init() {
-	log.SetFormatter(&log.JSONFormatter{})
+	logger.Out = os.Stdout
 
-	log.SetOutput(os.Stdout)
-
-	log.SetLevel(log.DebugLevel)
+	logger.Level = log.DebugLevel
 }
 
 func main() {
@@ -37,7 +37,7 @@ func main() {
 	fmt.Println(fmt.Sprintf("Starting app on port %s", portNumber))
 
 	db := database.NewDbAdapter()
-	playersService := services.NewPlayers(db)
+	playersService := services.NewPlayers(db, logger)
 
 	app := AppConfig{
 		PlayersService: playersService,
