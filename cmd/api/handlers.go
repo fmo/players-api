@@ -5,7 +5,6 @@ import (
 	"github.com/fmo/players-api/internal/helpers"
 	log "github.com/sirupsen/logrus"
 	"net/http"
-	"strconv"
 )
 
 type Server struct {
@@ -19,14 +18,7 @@ func NewServer(a AppConfig) Server {
 }
 
 func (h Server) GetSquad(w http.ResponseWriter, r *http.Request, params GetSquadParams) {
-	teamId := r.URL.Query().Get("teamId")
-	if teamId == "" {
-		http.Error(w, "teamId is required", http.StatusBadRequest)
-		return
-	}
-
-	teamIdInt, _ := strconv.Atoi(teamId)
-	players, err := h.app.PlayersService.FindPlayersByTeamId(teamIdInt)
+	players, err := h.app.PlayersService.FindPlayersByTeamId(params.TeamId)
 	if err != nil {
 		log.Debugf("canf find players %v", err)
 		helpers.ErrorJSON(w, errors.New("cant find a team"), 404)

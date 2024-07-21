@@ -35,7 +35,7 @@ paths:
           name: teamId
           required: true
           schema:
-            type: string
+            type: integer
           description: Squad
       responses:
         "200":

@@ -20,7 +20,7 @@ type Player struct {
 // GetSquadParams defines parameters for GetSquad.
 type GetSquadParams struct {
 	// TeamId Squad
-	TeamId string `form:"teamId" json:"teamId"`
+	TeamId int `form:"teamId" json:"teamId"`
 }
 
 // ServerInterface represents all server handlers.
