@@ -18,7 +18,7 @@ func NewServer(a AppConfig) Server {
 	}
 }
 
-func (h Server) getSquad(w http.ResponseWriter, r *http.Request) {
+func (h Server) GetSquad(w http.ResponseWriter, r *http.Request, params GetSquadParams) {
 	teamId := r.URL.Query().Get("teamId")
 	if teamId == "" {
 		http.Error(w, "teamId is required", http.StatusBadRequest)

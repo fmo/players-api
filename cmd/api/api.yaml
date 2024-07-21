@@ -26,6 +26,25 @@ paths:
           description: "bad request"
         "404":
           description: "player not found"
+  /players:
+    get:
+      summary: "Get players for a given team"
+      operationId: "getSquad"
+      parameters:
+        - in: query
+          name: teamId
+          required: true
+          schema:
+            type: string
+          description: Squad
+      responses:
+        "200":
+          description: "successful"
+        "400":
+          description: "bad request"
+        "404":
+          description: "player not found"
+
 components:
   schemas:
     Player:

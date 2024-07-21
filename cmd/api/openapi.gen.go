@@ -17,8 +17,17 @@ type Player struct {
 	Id        *int64  `json:"id,omitempty"`
 }
 
+// GetSquadParams defines parameters for GetSquad.
+type GetSquadParams struct {
+	// TeamId Squad
+	TeamId string `form:"teamId" json:"teamId"`
+}
+
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
+	// Get players for a given team
+	// (GET /players)
+	GetSquad(w http.ResponseWriter, r *http.Request, params GetSquadParams)
 	// Return players
 	// (GET /players/{playerId})
 	GetPlayers(w http.ResponseWriter, r *http.Request, playerId string)
@@ -27,6 +36,12 @@ type ServerInterface interface {
 // Unimplemented server implementation that returns http.StatusNotImplemented for each endpoint.
 
 type Unimplemented struct{}
+
+// Get players for a given team
+// (GET /players)
+func (_ Unimplemented) GetSquad(w http.ResponseWriter, r *http.Request, params GetSquadParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
 
 // Return players
 // (GET /players/{playerId})
@@ -42,6 +57,41 @@ type ServerInterfaceWrapper struct {
 }
 
 type MiddlewareFunc func(http.Handler) http.Handler
+
+// GetSquad operation middleware
+func (siw *ServerInterfaceWrapper) GetSquad(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetSquadParams
+
+	// ------------- Required query parameter "teamId" -------------
+
+	if paramValue := r.URL.Query().Get("teamId"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "teamId"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "teamId", r.URL.Query(), &params.TeamId)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "teamId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetSquad(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r.WithContext(ctx))
+}
 
 // GetPlayers operation middleware
 func (siw *ServerInterfaceWrapper) GetPlayers(w http.ResponseWriter, r *http.Request) {
@@ -182,6 +232,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		ErrorHandlerFunc:   options.ErrorHandlerFunc,
 	}
 
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/players", wrapper.GetSquad)
+	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/players/{playerId}", wrapper.GetPlayers)
 	})
