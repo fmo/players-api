@@ -25,3 +25,7 @@ Check .env.dist template and set the variables accordingly
 ```
 ./playerConsumer
 ```
+
+### Generate Open API 
+
+oapi-codegen --config=config.yaml ./api.yaml

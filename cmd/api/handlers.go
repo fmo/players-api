@@ -26,7 +26,7 @@ func (h Server) getSquad(w http.ResponseWriter, r *http.Request) {
 	}
 
 	teamIdInt, _ := strconv.Atoi(teamId)
-	players, err := h.app.PlayersService.FindPlayers(teamIdInt)
+	players, err := h.app.PlayersService.FindPlayersByTeamId(teamIdInt)
 	if err != nil {
 		log.Debugf("canf find players %v", err)
 		helpers.ErrorJSON(w, errors.New("cant find a team"), 404)
@@ -40,7 +40,7 @@ func (h Server) getSquad(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h Server) GetPlayers(w http.ResponseWriter, r *http.Request, playerId string) {
-	player, err := h.app.PlayersService.FindOnePlayer(playerId)
+	player, err := h.app.PlayersService.FindPlayerById(playerId)
 	if err != nil {
 		http.Error(w, "some error happened", http.StatusBadRequest)
 		log.Println(err)

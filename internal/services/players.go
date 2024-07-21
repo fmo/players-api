@@ -40,7 +40,7 @@ func (ps PlayersService) CreateOrUpdate(p models.Player) (response *dynamodb.Put
 	return ps.DB.Connection.PutItem(input)
 }
 
-func (ps PlayersService) FindPlayers(teamId int) (players []models.Player, err error) {
+func (ps PlayersService) FindPlayersByTeamId(teamId int) (players []models.Player, err error) {
 	filter := expression.Name("teamId").Equal(expression.Value(teamId))
 
 	expr, err := expression.NewBuilder().WithFilter(filter).Build()
@@ -72,7 +72,7 @@ func (ps PlayersService) FindPlayers(teamId int) (players []models.Player, err e
 	return nil, errors.New("no result")
 }
 
-func (ps PlayersService) FindOnePlayer(playerId string) (player *models.Player, err error) {
+func (ps PlayersService) FindPlayerById(playerId string) (player *models.Player, err error) {
 	input := &dynamodb.GetItemInput{
 		TableName: aws.String(tableName),
 		Key: map[string]*dynamodb.AttributeValue{

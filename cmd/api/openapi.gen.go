@@ -11,6 +11,12 @@ import (
 	"github.com/oapi-codegen/runtime"
 )
 
+// Player defines model for Player.
+type Player struct {
+	Firstname *string `json:"firstname,omitempty"`
+	Id        *int64  `json:"id,omitempty"`
+}
+
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// Return players
