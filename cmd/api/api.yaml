@@ -1,0 +1,49 @@
+swagger: "2.0"
+info:
+  description: "Public documentation for players api"
+  version: "0.0.1"
+  title: "Players Api"
+schemes:
+  - "http"
+paths:
+  /players/{playerId}:
+    get:
+      summary: "Return players"
+      operationId: "getPlayers"
+      parameters:
+        - in: path
+          name: playerId
+          required: true
+          schema:
+            type: string
+          description: Player id
+      produces:
+        - "application/json"
+      responses:
+        "200":
+          description: "successful"
+          schema:
+            $ref: "#/definitions/Player"
+        "400":
+          description: "bad request"
+        "404":
+          description: "player not found"
+definitions:
+  Player:
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+        format: "int64"
+      firstname:
+        type: "string"
+  ApiResponse:
+    type: "object"
+    properties:
+      code:
+        type: "integer"
+        format: "int32"
+      type:
+        type: "string"
+      message:
+        type: "string"

@@ -5,6 +5,7 @@ import (
 	"github.com/fmo/players-api/config"
 	"github.com/fmo/players-api/internal/database"
 	"github.com/fmo/players-api/internal/services"
+	"github.com/go-chi/chi/v5"
 	"github.com/joho/godotenv"
 	log "github.com/sirupsen/logrus"
 	"net/http"
@@ -36,17 +37,24 @@ func main() {
 	portNumber := config.GetApiPort()
 	fmt.Println(fmt.Sprintf("Starting app on port %s", portNumber))
 
+	// initiate database
 	db := database.NewDbAdapter()
+
+	// create player service
 	playersService := services.NewPlayers(db, logger)
 
-	app := AppConfig{
+	// define new server and assign app config
+	server := NewServer(AppConfig{
 		PlayersService: playersService,
-	}
+	})
+
+	r := chi.NewMux()
+	h := HandlerFromMux(server, r)
 
 	srv := &http.Server{
 		Addr:    portNumber,
-		Handler: app.routes(),
+		Handler: h,
 	}
-	err := srv.ListenAndServe()
-	log.Fatal(err)
+
+	log.Fatal(srv.ListenAndServe())
 }
