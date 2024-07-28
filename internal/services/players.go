@@ -72,6 +72,48 @@ func (ps PlayersService) FindPlayersByTeamId(teamId int) (players []models.Playe
 	return nil, errors.New("no result")
 }
 
+func (ps PlayersService) FindPlayersByRapidApiId(apiFootballId, transfermarktId string) (player *models.Player, err error) {
+	var filter expression.ConditionBuilder
+	if apiFootballId != "" {
+		ps.Logger.Debugf("filter apiFootballId")
+		filter = expression.Name("apiFootballId").Equal(expression.Value(apiFootballId))
+	}
+	if transfermarktId != "" {
+		ps.Logger.Debugf("filter transfermarktId with transfermarktId %s", transfermarktId)
+		filter = expression.Name("transfermarktId").Equal(expression.Value(transfermarktId))
+	}
+
+	expr, err := expression.NewBuilder().WithFilter(filter).Build()
+	if err != nil {
+		return nil, err
+	}
+
+	input := &dynamodb.ScanInput{
+		ExpressionAttributeNames:  expr.Names(),
+		ExpressionAttributeValues: expr.Values(),
+		FilterExpression:          expr.Filter(),
+		TableName:                 aws.String(tableName),
+	}
+
+	result, err := ps.DB.Connection.Scan(input)
+	if err != nil {
+		return nil, err
+	}
+
+	ps.Logger.Debugf("Found number of players: %d", len(result.Items))
+
+	if len(result.Items) > 0 {
+		err = dynamodbattribute.UnmarshalMap(result.Items[0], &player)
+		if err != nil {
+			return nil, err
+		} else {
+			return player, nil
+		}
+	}
+
+	return nil, errors.New("no result")
+}
+
 func (ps PlayersService) FindPlayerById(playerId string) (player *models.Player, err error) {
 	input := &dynamodb.GetItemInput{
 		TableName: aws.String(tableName),

@@ -10,6 +10,7 @@ import (
 	"github.com/fmo/players-api/internal/models"
 	"github.com/fmo/players-api/internal/s3"
 	"github.com/fmo/players-api/internal/services"
+	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 	log "github.com/sirupsen/logrus"
 	"os"
@@ -86,17 +87,37 @@ func main() {
 
 		for _, player := range players {
 			p := models.Player{
-				Team:        player.Team,
-				TeamId:      player.TeamId,
-				Name:        player.Name,
-				Firstname:   player.Firstname,
-				Lastname:    player.Lastname,
-				Age:         player.Age,
-				Nationality: player.Nationality,
-				Photo:       player.Photo,
-				RapidApiID:  player.RapidApiId,
-				Appearances: player.Appearances,
-				Position:    player.Position,
+				Team:                player.Team,
+				TeamId:              player.TeamId,
+				Name:                player.Name,
+				Firstname:           player.Firstname,
+				Lastname:            player.Lastname,
+				Age:                 player.Age,
+				Nationality:         player.Nationality,
+				Photo:               player.Photo,
+				ApiFootballId:       player.ApiFootballId,
+				Appearances:         player.Appearances,
+				Position:            player.Position,
+				TransfermarktId:     player.TransfermarktId,
+				ShirtNumber:         player.ShirtNumber,
+				MarketValue:         player.MarketValue,
+				MarketValueCurrency: player.MarketValueCurrency,
+			}
+
+			playerInDb, err := playersService.FindPlayersByRapidApiId(player.ApiFootballId, player.TransfermarktId)
+			if err != nil {
+				logger.Debugf("Finding player in db failed %v", err)
+			}
+			if playerInDb != nil {
+				logger.WithFields(log.Fields{
+					"playerInDbId": playerInDb.Id,
+				}).Debug("Player already in the database")
+				p.Id = playerInDb.Id
+			} else {
+				p.Id = uuid.New().String()
+				logger.WithFields(log.Fields{
+					"newPlayerId": p.Id,
+				}).Info("New player will be created")
 			}
 
 			imageAlreadyUploaded := false
@@ -114,14 +135,14 @@ func main() {
 				}
 			}
 
-			_, err := playersService.CreateOrUpdate(p)
+			_, err = playersService.CreateOrUpdate(p)
 			if err != nil {
 				logger.Fatalf("Got error calling PutItem: %s", err)
 			}
 
 			logger.WithFields(log.Fields{
 				"playerImage": imageInfo,
-				"playerId":    p.RapidApiID,
+				"playerId":    p.ApiFootballId,
 				"teamName":    p.Team,
 			}).Infof("inserted or updated %s %s to the database", p.Firstname, p.Lastname)
 		}

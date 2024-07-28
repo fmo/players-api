@@ -34,7 +34,7 @@ func NewS3Service(l *log.Logger) (*Service, error) {
 }
 
 func (s Service) Save(player models.Player) (imageAlreadyUploaded bool, err error) {
-	s3Key := fmt.Sprintf("%s.png", player.RapidApiID)
+	s3Key := fmt.Sprintf("%s.png", player.Id)
 
 	s3Bucket := config.GetS3Bucket()
 
