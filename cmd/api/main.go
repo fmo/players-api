@@ -6,6 +6,7 @@ import (
 	"github.com/fmo/players-api/internal/database"
 	"github.com/fmo/players-api/internal/services"
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/cors"
 	"github.com/joho/godotenv"
 	log "github.com/sirupsen/logrus"
 	"net/http"
@@ -49,6 +50,18 @@ func main() {
 	})
 
 	r := chi.NewMux()
+
+	corsHandler := cors.New(cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: true,
+		MaxAge:           300,
+	})
+
+	r.Use(corsHandler.Handler)
+
 	h := HandlerFromMux(server, r)
 
 	srv := &http.Server{
