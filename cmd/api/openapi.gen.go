@@ -14,7 +14,8 @@ import (
 // Player defines model for Player.
 type Player struct {
 	Firstname *string `json:"firstname,omitempty"`
-	Id        *int64  `json:"id,omitempty"`
+	Id        *string `json:"id,omitempty"`
+	TeamId    *int    `json:"teamId,omitempty"`
 }
 
 // GetSquadParams defines parameters for GetSquad.

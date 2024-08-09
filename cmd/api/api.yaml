@@ -51,10 +51,11 @@ components:
       type: "object"
       properties:
         id:
-          type: "integer"
-          format: "int64"
+          type: "string"
         firstname:
           type: "string"
+        teamId:
+          type: "integer"
     ApiResponse:
       type: "object"
       properties:
