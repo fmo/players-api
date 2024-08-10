@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/fmo/players-api/internal/api"
 	"github.com/fmo/players-api/internal/helpers"
 	log "github.com/sirupsen/logrus"
 	"net/http"
@@ -21,14 +22,14 @@ func NewServer(a AppConfig) Server {
 	}
 }
 
-func (h Server) GetSquad(w http.ResponseWriter, r *http.Request, params GetSquadParams) {
+func (h Server) GetSquad(w http.ResponseWriter, r *http.Request, params api.GetSquadParams) {
 	ctx := context.Background()
 	redisKey := fmt.Sprintf("squad:%d", params.TeamId)
 
 	// Try to get squad from Redis
 	squadData, err := h.app.RedisClient.Get(ctx, redisKey).Result()
 	if err == nil {
-		var players []Player
+		var players []api.Player
 		err = json.Unmarshal([]byte(squadData), &players)
 		if err == nil {
 			h.app.PlayersService.Logger.Debugf("Found squad in Redis returning response")
@@ -69,7 +70,7 @@ func (h Server) GetPlayers(w http.ResponseWriter, r *http.Request, playerId stri
 	// Try to get player from Redis
 	playerData, err := h.app.RedisClient.Get(ctx, redisKey).Result()
 	if err == nil {
-		var player Player
+		var player api.Player
 		err = json.Unmarshal([]byte(playerData), &player)
 		if err == nil {
 			helpers.WriteJSON(w, http.StatusOK, helpers.JsonResponse{

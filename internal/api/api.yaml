@@ -52,7 +52,19 @@ components:
       properties:
         id:
           type: "string"
-        firstname:
+        position:
+          type: "string"
+        transfermarktId:
+          type: "string"
+        shirtNumber:
+          type: "string"
+        marketValue:
+          type: "integer"
+        marketValueCurrency:
+          type: "string"
+        age:
+          type: "integer"
+        name:
           type: "string"
         teamId:
           type: "integer"

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/fmo/players-api/config"
+	"github.com/fmo/players-api/internal/api"
 	"github.com/fmo/players-api/internal/database"
 	"github.com/fmo/players-api/internal/services"
 	"github.com/go-chi/chi/v5"
@@ -81,7 +82,7 @@ func main() {
 
 	r.Use(corsHandler.Handler)
 
-	h := HandlerFromMux(server, r)
+	h := api.HandlerFromMux(server, r)
 
 	srv := &http.Server{
 		Addr:    portNumber,

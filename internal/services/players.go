@@ -7,8 +7,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/aws/aws-sdk-go/service/dynamodb/expression"
+	"github.com/fmo/players-api/internal/api"
 	"github.com/fmo/players-api/internal/database"
-	"github.com/fmo/players-api/internal/models"
 	"github.com/sirupsen/logrus"
 )
 
@@ -26,7 +26,7 @@ func NewPlayers(db *database.Database, l *logrus.Logger) PlayersService {
 	}
 }
 
-func (ps PlayersService) CreateOrUpdate(p models.Player) (response *dynamodb.PutItemOutput, err error) {
+func (ps PlayersService) CreateOrUpdate(p api.Player) (response *dynamodb.PutItemOutput, err error) {
 	playerParsed, err := dynamodbattribute.MarshalMap(p)
 	if err != nil {
 		return nil, err
@@ -40,7 +40,7 @@ func (ps PlayersService) CreateOrUpdate(p models.Player) (response *dynamodb.Put
 	return ps.DB.Connection.PutItem(input)
 }
 
-func (ps PlayersService) FindPlayersByTeamId(teamId int) (players []models.Player, err error) {
+func (ps PlayersService) FindPlayersByTeamId(teamId int) (players []api.Player, err error) {
 	filter := expression.Name("teamId").Equal(expression.Value(teamId))
 
 	expr, err := expression.NewBuilder().WithFilter(filter).Build()
@@ -72,7 +72,7 @@ func (ps PlayersService) FindPlayersByTeamId(teamId int) (players []models.Playe
 	return nil, errors.New("no result")
 }
 
-func (ps PlayersService) FindPlayersByRapidApiId(apiFootballId, transfermarktId string) (player *models.Player, err error) {
+func (ps PlayersService) FindPlayersByRapidApiId(apiFootballId, transfermarktId string) (player *api.Player, err error) {
 	var filter expression.ConditionBuilder
 	if apiFootballId != "" {
 		ps.Logger.Debugf("filter apiFootballId")
@@ -114,7 +114,7 @@ func (ps PlayersService) FindPlayersByRapidApiId(apiFootballId, transfermarktId 
 	return nil, errors.New("no result")
 }
 
-func (ps PlayersService) FindPlayerById(playerId string) (player *models.Player, err error) {
+func (ps PlayersService) FindPlayerById(playerId string) (player *api.Player, err error) {
 	input := &dynamodb.GetItemInput{
 		TableName: aws.String(tableName),
 		Key: map[string]*dynamodb.AttributeValue{
