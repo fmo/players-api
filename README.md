@@ -10,7 +10,6 @@ Just get the binary for either consumer or the api or for the both and basically
 ### Prerequisites
 
 - AWS Client environment for DynamoDB
-- Kafka credentials
 
 ### Set The Env Vars
 
@@ -20,10 +19,6 @@ Check .env.dist template and set the variables accordingly
 
 ```
 ./playersApi
-```
-
-```
-./playerConsumer
 ```
 
 ### Generate Open API 
