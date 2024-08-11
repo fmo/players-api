@@ -1,11 +1,11 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"github.com/fmo/players-api/config"
 	"github.com/fmo/players-api/internal/api"
 	"github.com/fmo/players-api/internal/database"
+	redisConn "github.com/fmo/players-api/internal/redis"
 	"github.com/fmo/players-api/internal/services"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
@@ -49,19 +49,7 @@ func main() {
 	playersService := services.NewPlayers(db, logger)
 
 	// connect to Redis
-	redisAddr := os.Getenv("REDIS_ADDR")
-	if redisAddr == "" {
-		redisAddr = "localhost:6379"
-	}
-	redisClient := redis.NewClient(&redis.Options{
-		Addr: redisAddr,
-	})
-	conn, err := redisClient.Ping(context.Background()).Result()
-	if err != nil {
-		log.Fatal("Error connecting to Redis:", err)
-	} else {
-		log.Debugf("Connected to redis %v", conn)
-	}
+	redisClient := redisConn.NewRedisClient()
 
 	// define new server and assign app config
 	server := NewServer(AppConfig{
