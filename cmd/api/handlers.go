@@ -32,7 +32,7 @@ func (h Server) GetSquad(w http.ResponseWriter, r *http.Request, params api.GetS
 		var players []api.Player
 		err = json.Unmarshal([]byte(squadData), &players)
 		if err == nil {
-			h.app.PlayersService.Logger.Debugf("Found squad in Redis returning response")
+			h.app.PlayersService.Logger.Debugf("Found squad for team %d in Redis returning response", params.TeamId)
 			helpers.WriteJSON(w, http.StatusOK, helpers.JsonResponse{
 				Message: "Players",
 				Data:    players,
@@ -55,7 +55,7 @@ func (h Server) GetSquad(w http.ResponseWriter, r *http.Request, params api.GetS
 		h.app.RedisClient.Set(ctx, redisKey, jsonSquad, 240*time.Hour)
 	}
 
-	h.app.PlayersService.Logger.Debugf("Found squad in database returning response")
+	h.app.PlayersService.Logger.Debugf("Found squad for team id %d in database returning response", params.TeamId)
 
 	helpers.WriteJSON(w, http.StatusOK, helpers.JsonResponse{
 		Message: "Players",
