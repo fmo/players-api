@@ -26,20 +26,6 @@ func NewPlayers(db *database.Database, l *logrus.Logger) PlayersService {
 	}
 }
 
-func (ps PlayersService) CreateOrUpdate(p api.Player) (response *dynamodb.PutItemOutput, err error) {
-	playerParsed, err := dynamodbattribute.MarshalMap(p)
-	if err != nil {
-		return nil, err
-	}
-
-	input := &dynamodb.PutItemInput{
-		Item:      playerParsed,
-		TableName: aws.String(tableName),
-	}
-
-	return ps.DB.Connection.PutItem(input)
-}
-
 func (ps PlayersService) FindPlayersByTeamId(teamId int) (players []api.Player, err error) {
 	filter := expression.Name("teamId").Equal(expression.Value(teamId))
 
@@ -66,48 +52,6 @@ func (ps PlayersService) FindPlayersByTeamId(teamId int) (players []api.Player, 
 			return players, err
 		} else {
 			return players, nil
-		}
-	}
-
-	return nil, errors.New("no result")
-}
-
-func (ps PlayersService) FindPlayersByRapidApiId(apiFootballId, transfermarktId string) (player *api.Player, err error) {
-	var filter expression.ConditionBuilder
-	if apiFootballId != "" {
-		ps.Logger.Debugf("filter apiFootballId")
-		filter = expression.Name("apiFootballId").Equal(expression.Value(apiFootballId))
-	}
-	if transfermarktId != "" {
-		ps.Logger.Debugf("filter transfermarktId with transfermarktId %s", transfermarktId)
-		filter = expression.Name("transfermarktId").Equal(expression.Value(transfermarktId))
-	}
-
-	expr, err := expression.NewBuilder().WithFilter(filter).Build()
-	if err != nil {
-		return nil, err
-	}
-
-	input := &dynamodb.ScanInput{
-		ExpressionAttributeNames:  expr.Names(),
-		ExpressionAttributeValues: expr.Values(),
-		FilterExpression:          expr.Filter(),
-		TableName:                 aws.String(tableName),
-	}
-
-	result, err := ps.DB.Connection.Scan(input)
-	if err != nil {
-		return nil, err
-	}
-
-	ps.Logger.Debugf("Found number of players: %d", len(result.Items))
-
-	if len(result.Items) > 0 {
-		err = dynamodbattribute.UnmarshalMap(result.Items[0], &player)
-		if err != nil {
-			return nil, err
-		} else {
-			return player, nil
 		}
 	}
 
