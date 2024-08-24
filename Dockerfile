@@ -1,7 +1,13 @@
-FROM alpine:latest
+FROM golang:1.22
 
-RUN mkdir /app
+WORKDIR /app
 
-COPY playersApi /app
+COPY go.mod go.sum ./
 
-CMD [ "/app/playersApi" ]
+RUN go mod download
+
+COPY . .
+
+RUN make players_api_amd
+
+CMD ["./playersApiApp"]

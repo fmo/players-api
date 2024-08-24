@@ -5,3 +5,13 @@ services:
     image: "redis:alpine"
     ports:
       - "6379:6379"
+  players-api:
+    build: .
+    ports:
+      - "8112:8112"
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+      - ~/.aws:/root/.aws:ro
+    command: [ "./playersApiApp" ]
