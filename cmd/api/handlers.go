@@ -44,7 +44,7 @@ func (h Server) GetSquad(w http.ResponseWriter, r *http.Request, params api.GetS
 	// If not found in Redis, get from database
 	players, err := h.app.PlayersService.FindPlayersByTeamId(params.TeamId)
 	if err != nil {
-		h.app.PlayersService.Logger.Debugf("can't find players %v", err)
+		h.app.PlayersService.Logger.Debugf("Can't find squad in database for team %d", params.TeamId)
 		helpers.ErrorJSON(w, errors.New("can't find a team"), 404)
 		return
 	}
@@ -55,7 +55,7 @@ func (h Server) GetSquad(w http.ResponseWriter, r *http.Request, params api.GetS
 		h.app.RedisClient.Set(ctx, redisKey, jsonSquad, 240*time.Hour)
 	}
 
-	h.app.PlayersService.Logger.Debugf("Found squad for team id %d in database returning response", params.TeamId)
+	h.app.PlayersService.Logger.Debugf("Found squad for team %d in database returning response", params.TeamId)
 
 	helpers.WriteJSON(w, http.StatusOK, helpers.JsonResponse{
 		Message: "Players",
