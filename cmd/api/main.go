@@ -17,7 +17,7 @@ var logger = log.New()
 func init() {
 	logger.Out = os.Stdout
 
-	logger.Level = log.DebugLevel
+	logger.Level = log.InfoLevel
 }
 
 func main() {

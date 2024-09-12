@@ -24,13 +24,12 @@ func NewApplication(cache ports.CachePort, db ports.DBPort) *Application {
 
 func (a Application) Squad(ctx context.Context, teamId string) []domain.Player {
 	cacheKey := fmt.Sprintf("squad:%s", teamId)
-
 	squadData, err := a.cache.Get(ctx, cacheKey)
 	if err == nil {
 		var players []domain.Player
 		err = json.Unmarshal([]byte(squadData), &players)
 		if err == nil {
-			log.Debugf("Found squad for team %s in Redis returning response", teamId)
+			log.Info("Found squad for team %s in Redis returning response", teamId)
 
 			return players
 		}
@@ -38,7 +37,7 @@ func (a Application) Squad(ctx context.Context, teamId string) []domain.Player {
 
 	players, err := a.db.FindPlayersByTeamId(ctx, teamId)
 	if err != nil {
-		log.Debugf("Can't find squad in database for team %s", teamId)
+		log.Infof("Can't find squad in database for team %s", teamId)
 
 		return players
 	}
@@ -48,7 +47,7 @@ func (a Application) Squad(ctx context.Context, teamId string) []domain.Player {
 		a.cache.Set(ctx, cacheKey, jsonSquad, 240*time.Hour)
 	}
 
-	log.Debugf("Found squad for team %s in database returning response", teamId)
+	log.Infof("Found squad for team %s in database returning response", teamId)
 
 	return []domain.Player{}
 }
