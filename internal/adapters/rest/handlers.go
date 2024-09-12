@@ -6,13 +6,12 @@ import (
 	"github.com/fmo/players-api/internal/adapters/rest/helpers"
 	"github.com/fmo/players-api/internal/api"
 	"net/http"
-	"strconv"
 )
 
 func (a Adapter) GetSquad(w http.ResponseWriter, r *http.Request, params api.GetSquadParams) {
 	ctx := context.Background()
 
-	players := a.api.Squad(ctx, strconv.Itoa(params.TeamId))
+	players := a.api.Squad(ctx, params.TeamId)
 
 	helpers.WriteJSON(w, http.StatusOK, helpers.JsonResponse{
 		Message: "Players",

@@ -28,7 +28,7 @@ func NewAdapter(tableName string) (*Adapter, error) {
 	}, nil
 }
 
-func (a Adapter) FindPlayersByTeamId(ctx context.Context, teamId string) (players []domain.Player, err error) {
+func (a Adapter) FindPlayersByTeamId(ctx context.Context, teamId int) (players []domain.Player, err error) {
 	filter := expression.Name("teamId").Equal(expression.Value(teamId))
 
 	expr, err := expression.NewBuilder().WithFilter(filter).Build()

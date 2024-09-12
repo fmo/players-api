@@ -6,6 +6,6 @@ import (
 )
 
 type APIPorts interface {
-	Squad(ctx context.Context, teamId string) []domain.Player
+	Squad(ctx context.Context, teamId int) []domain.Player
 	Player(ctx context.Context, playerId string) (domain.Player, error)
 }

@@ -22,8 +22,8 @@ func NewApplication(cache ports.CachePort, db ports.DBPort) *Application {
 	}
 }
 
-func (a Application) Squad(ctx context.Context, teamId string) []domain.Player {
-	cacheKey := fmt.Sprintf("squad:%s", teamId)
+func (a Application) Squad(ctx context.Context, teamId int) []domain.Player {
+	cacheKey := fmt.Sprintf("squad:%d", teamId)
 	squadData, err := a.cache.Get(ctx, cacheKey)
 	if err == nil {
 		var players []domain.Player
@@ -37,7 +37,7 @@ func (a Application) Squad(ctx context.Context, teamId string) []domain.Player {
 
 	players, err := a.db.FindPlayersByTeamId(ctx, teamId)
 	if err != nil {
-		log.Infof("Can't find squad in database for team %s", teamId)
+		log.Infof("Can't find squad in database for team %d", teamId)
 
 		return players
 	}
@@ -47,9 +47,9 @@ func (a Application) Squad(ctx context.Context, teamId string) []domain.Player {
 		a.cache.Set(ctx, cacheKey, jsonSquad, 240*time.Hour)
 	}
 
-	log.Infof("Found squad for team %s in database returning response", teamId)
+	log.Infof("Found squad for team %d in database returning response", teamId)
 
-	return []domain.Player{}
+	return players
 }
 
 func (a Application) Player(ctx context.Context, playerId string) (domain.Player, error) {
